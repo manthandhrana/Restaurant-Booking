@@ -15,7 +15,91 @@
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+input {
+  display: block;
+  margin: 10px;
+  padding: 8px;
+  color: #171717;
+  background-color: #5f5b5bbd;
+  width: 100%;
+  padding: 10px;
+  outline: none;
+  border-radius: 10px;
+  color: black;
+  cursor: pointer;
+}
+
+button {
+  display: block;
+  margin: 10px;
+  padding: 8px;
+  color: #171717;
+  background-color: #0e0a28;
+  width: 100%;
+  padding: 10px;
+  outline: none;
+  border-radius: 10px;
+  color: white;
+}
+
+input::placeholder {
+  color: black;
+  opacity: 1;
+  /* For Firefox */
+}
+
+.header {
+  margin: 10px;
+  color: black;
+  font-size: 34px;
+  text-align: center;
+}
+
+.navbar,
+.footer {
+  background: #0e0a28;
+  padding: 10px;
+  text-align: center;
+  color: white;
+}
+
+.rows {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+
+}
+
+footer {
+  margin-top: auto;
+}
+
+@media(max-width:500px) {
+  .rows {
+    flex-direction: column;
+  }
+
+  input {
+    margin: 10px 0px;
+  }
+
+  button {
+    margin: auto;
+  }
+  tbody {
+    height: 400px;
+    overflow-y: scroll;
+    }
+  table{
+    overflow-y:scroll;
+    display:block;
+    }
 }

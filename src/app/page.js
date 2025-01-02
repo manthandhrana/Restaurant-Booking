@@ -1,101 +1,210 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [formData, setFormData] = useState({
+    date: "",
+    time: "",
+    guests: "",
+    name: "",
+    contact: "",
+    contactemail: "", // Added contactemail to formData
+  });
+  const [bookings, setBookings] = useState([]);
+  const [userId, setUserId] = useState(""); // Initialize userId with an empty string
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Fetch userId from localStorage on the client side
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId") || generateUserId(); // Generate or fetch userId ||
+    document.cookie = `userId=${storedUserId}; path=/;`; // Set the cookie
+    localStorage.setItem("userId", storedUserId); // Store in localStorage for later use
+    setUserId(storedUserId);
+  }, []);
+
+  const generateUserId = () => {
+    return Math.random().toString(36).substr(2, 9); // Random 9-character string
+  };
+  console.log(generateUserId)
+
+  // Fetch existing bookings
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/bookings", {
+        credentials: "include", // Include cookies
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBookings(data);
+      } else {
+        console.error("Failed to fetch bookings");
+      }
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:5000/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData }),
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        alert("Booking Successful!");
+        setFormData({
+          date: "",
+          time: "",
+          guests: "",
+          name: "",
+          contact: "",
+          contactemail: "",
+        });
+        fetchBookings(); // Refresh bookings
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || "Error creating booking.");
+      }
+    } catch (err) {
+      console.error("Error submitting booking:", err);
+    }
+  };
+
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  const handleDelete = async (bookingId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/bookings/${bookingId}`, {
+        method: "DELETE",
+        credentials: "include", // Include cookies
+      });
+
+      if (res.ok) {
+        alert("Booking deleted successfully!");
+        fetchBookings(); // Refresh bookings after deletion
+      } else {
+        alert("Error deleting booking.");
+      }
+    } catch (err) {
+      console.error("Error deleting booking:", err);
+    }
+  };
+
+  return (
+    <main style={{ padding: "20px" }}>
+      <h1 className="header">Restaurant Table Booking</h1>
+      <form onSubmit={handleSubmit}>
+        <div className="rows">
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Name"
+            required
+          />
+          <input
+            type="number"
+            name="guests"
+            value={formData.guests}
+            onChange={handleChange}
+            placeholder="Number Of Guests"
+            required
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div className="rows">
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            min={new Date().toISOString().split("T")[0]}
+            required
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          <input
+            type="time"
+            name="time"
+            value={formData.time}
+            onChange={handleChange}
+            min={new Date().toISOString().split("T")[0]}
+            required
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
+        </div>
+        <div className="rows">
+          <input
+            type="email"
+            name="contactemail"
+            value={formData.contactemail}
+            onChange={handleChange}
+            placeholder="Enter Your Email"
+            required
           />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <input
+            type="text"
+            name="contact"
+            value={formData.contact}
+            onChange={handleChange}
+            pattern="[1-9]{1}[0-9]{9}" // Ensures it matches a valid 10-digit mobile number pattern
+            maxLength={10} // Limits the input to a maximum of 10 characters
+            placeholder="Enter Your Number"
+            required
+          />
+        </div>
+        <div className="rows">
+          <button type="submit" className="Button">
+            Book Now
+          </button>
+        </div>
+      </form>
+      <h2 className="header">Existing Bookings</h2>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginTop: "20px",
+        }}
+      >
+        <thead>
+          <tr style={{ backgroundColor: "#f2f2f2", textAlign: "left" }}>
+            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Date</th>
+            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Time</th>
+            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Guests</th>
+            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Name</th>
+            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Contact</th>
+            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Email</th>
+            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {bookings.map((booking, index) => (
+            <tr key={index} style={{ textAlign: "left" }}>
+              <td style={{ padding: "10px", border: "1px solid #ddd" }}>{booking.date}</td>
+              <td style={{ padding: "10px", border: "1px solid #ddd" }}>{booking.time}</td>
+              <td style={{ padding: "10px", border: "1px solid #ddd" }}>{booking.guests}</td>
+              <td style={{ padding: "10px", border: "1px solid #ddd" }}>{booking.name}</td>
+              <td style={{ padding: "10px", border: "1px solid #ddd" }}>{booking.contact}</td>
+              <td style={{ padding: "10px", border: "1px solid #ddd" }}>{booking.contactemail}</td>
+              <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                <button onClick={() => handleDelete(booking._id)} style={{ backgroundColor: "red", color: "white", border: "none", padding: "5px 10px", cursor: "pointer" }}>
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+
+      </table>
+    </main>
   );
 }
+
